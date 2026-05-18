@@ -101,6 +101,11 @@ final class UsageViewModel {
             case .loaded:         return "?"
             }
         }
+        // When the block has reset in fallback mode, show a sync prompt instead
+        // of a percentage that may not reflect an active session's real usage.
+        if state.isApproximate, state.usageData?.isBlockReset == true {
+            return "↺ sync"
+        }
         let pct    = five.utilization.rounded()
         let time   = resetTimeString(five.resetsAt)
         let prefix = state.isApproximate ? "~" : ""

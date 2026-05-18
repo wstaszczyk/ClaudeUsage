@@ -99,26 +99,42 @@ struct MenuBarView: View {
 
             // Approximate data note (shown when API is unavailable)
             if vm.state.isApproximate {
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.circle")
-                        .font(.system(size: 10))
-                    Text("Estimated · open Claude Desktop to sync")
-                        .font(.system(size: 11))
+                if data.isBlockReset {
+                    // Block reset detected in JSONL but live session data is unavailable.
+                    // Active session tokens may not be in JSONL yet — show a clear prompt.
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 10))
+                        Text("Block reset · open Claude Desktop app to sync")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundColor(DS.amber)
+                    .row(v: 3)
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.circle")
+                            .font(.system(size: 10))
+                        Text("Estimated · open Claude Desktop to sync")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundColor(DS.muted)
+                    .row(v: 3)
                 }
-                .foregroundColor(DS.muted)
-                .row(v: 3)
             }
 
             // HTML: dd-row.dense > dd-reset
-            HStack(spacing: 0) {
-                Text("Resets at \(vm.resetTimeString(p.resetsAt))")
-                    .foregroundColor(DS.fg)
-                Text("  ·  ").foregroundColor(DS.muted)
-                Text("\(vm.remainingString(p.resetsAt)) remaining")
-                    .foregroundColor(DS.muted)
+            // When block has reset and we're in fallback, hide the misleading countdown
+            if !(vm.state.isApproximate && data.isBlockReset) {
+                HStack(spacing: 0) {
+                    Text("Resets at \(vm.resetTimeString(p.resetsAt))")
+                        .foregroundColor(DS.fg)
+                    Text("  ·  ").foregroundColor(DS.muted)
+                    Text("\(vm.remainingString(p.resetsAt)) remaining")
+                        .foregroundColor(DS.muted)
+                }
+                .font(.system(size: 13))
+                .row(v: DS.rowHdense)
             }
-            .font(.system(size: 13))
-            .row(v: DS.rowHdense)
         }
 
         // ── Divider ──────────────────────────────────────────────────────────

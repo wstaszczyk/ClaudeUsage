@@ -11,6 +11,10 @@ struct UsageData {
     let sevenDayOmelette: UsagePeriod?
     /// Set only in JSONL fallback — raw 7-day cache_creation tokens, no denominator known.
     let sevenDayTokensApproximate: Int?
+    /// True when the JSONL fallback detected that the last known block has expired
+    /// and no newer turns exist in JSONL yet (e.g. an active session not yet flushed).
+    /// The UI should warn the user to open Claude Desktop rather than show a fake countdown.
+    let isBlockReset: Bool
 }
 
 extension UsageData: Decodable {
@@ -26,6 +30,7 @@ extension UsageData: Decodable {
         sevenDay              = try c.decodeIfPresent(UsagePeriod.self, forKey: .sevenDay)
         sevenDayOmelette      = try c.decodeIfPresent(UsagePeriod.self, forKey: .sevenDayOmelette)
         sevenDayTokensApproximate = nil
+        isBlockReset          = false
     }
 }
 
@@ -135,11 +140,13 @@ struct UsageService {
         let resetsAt = block[0].ts.addingTimeInterval(5 * 3600)
 
         // If resetsAt is in the past the block has already expired.
-        // Show 0 % for the new empty block; estimate the next reset as 5 h from now
-        // (it will be corrected to firstNewTurn + 5 h once the user resumes).
+        // Show 0 % and flag isBlockReset so the UI can replace the fake countdown
+        // with a "open Claude Desktop to sync" prompt. The true reset time of any
+        // new active session is unknown until JSONL receives those turns.
         let now = Date()
-        let utilization  = resetsAt <= now ? 0.0 : rawUtilization
-        let effectiveResetsAt = resetsAt <= now ? now.addingTimeInterval(5 * 3600) : resetsAt
+        let blockExpired      = resetsAt <= now
+        let utilization       = blockExpired ? 0.0 : rawUtilization
+        let effectiveResetsAt = blockExpired ? now.addingTimeInterval(5 * 3600) : resetsAt
 
         // 5. 7-day token sum (no weekly limit available from JSONL; shown as raw count)
         let sevenDayAgo = Date().addingTimeInterval(-7 * 24 * 3600)
@@ -157,7 +164,8 @@ struct UsageService {
             ),
             sevenDay: nil,
             sevenDayOmelette: nil,
-            sevenDayTokensApproximate: weeklyTokens
+            sevenDayTokensApproximate: weeklyTokens,
+            isBlockReset: blockExpired
         )
     }
 
