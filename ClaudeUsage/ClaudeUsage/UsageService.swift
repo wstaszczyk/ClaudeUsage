@@ -82,9 +82,14 @@ struct UsageService {
     /// Returns the data and a flag indicating whether it came from the fallback.
     func fetch() async throws -> (data: UsageData, isApproximate: Bool) {
         do {
-            let sessionKey = try getSessionKey()
-            let orgUUID    = try getOrgUUID()
-            let data       = try await callAPI(sessionKey: sessionKey, orgUUID: orgUUID)
+            // Run Keychain read, PBKDF2 derivation, SQLite read, and AES decrypt
+            // off the main thread — they block for tens of milliseconds each.
+            let (sessionKey, orgUUID) = try await Task.detached(priority: .userInitiated) {
+                let sk   = try self.getSessionKey()
+                let uuid = try self.getOrgUUID()
+                return (sk, uuid)
+            }.value
+            let data = try await callAPI(sessionKey: sessionKey, orgUUID: orgUUID)
             return (data, false)
         } catch {
             // API failed — fall back to local JSONL
@@ -110,10 +115,14 @@ struct UsageService {
         let turns = collectTurns()
         guard !turns.isEmpty else { throw UsageServiceError.sessionKeyNotFound }
 
-        // 3. Find current block: greedy 5-hour walk backwards from most recent turn
+        // 3. Find current block: greedy 5-hour walk backwards from most recent turn.
+        //    Compare each candidate against block[0] (the current earliest in the
+        //    block), not block.last! (which is always the most-recent turn and never
+        //    moves as we insert at index 0). Using block.last! caused turns from
+        //    before the real block boundary to be included, producing a wrong resetsAt.
         var block = [turns.last!]
         for turn in turns.dropLast().reversed() {
-            let gapHours = block.last!.ts.timeIntervalSince(turn.ts) / 3600
+            let gapHours = block[0].ts.timeIntervalSince(turn.ts) / 3600
             if gapHours > 5 { break }
             block.insert(turn, at: 0)
         }
