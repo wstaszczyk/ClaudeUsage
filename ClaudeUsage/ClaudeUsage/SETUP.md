@@ -42,10 +42,10 @@ Click **Next**.
 
 A file picker appears asking where to save.
 
-1. Navigate to your **Documents → Claude Code → ai-makers-club** folder
-2. You should see a folder named **ClaudeUsage** already there
+1. Navigate to the folder where you cloned this repository
+2. You should see a folder named **ClaudeUsage** there
 3. **Select that folder** as the save location
-4. Uncheck *"Create Git repository"* (we'll manage that ourselves)
+4. Uncheck *"Create Git repository"* (this repo already has git history)
 5. Click **Create**
 
 Xcode opens with a default project. You'll see files in the left sidebar (the **Project Navigator**).
@@ -69,8 +69,7 @@ Xcode created a file called **ClaudeUsageApp.swift** with some default code. We 
 1. Click **ClaudeUsageApp.swift** in the sidebar to open it
 2. Press **⌘A** to select all its contents
 3. Delete it (press Backspace)
-4. Open Finder and navigate to:
-   `Documents → Claude Code → ai-makers-club → ClaudeUsage → ClaudeUsage`
+4. Open Finder and navigate to the cloned repo, then into `ClaudeUsage/ClaudeUsage/`
 5. Open **ClaudeUsageApp.swift** in TextEdit (right-click → Open With → TextEdit)
 6. Press **⌘A** then **⌘C** to copy all its contents
 7. Switch back to Xcode and press **⌘V** to paste
@@ -83,7 +82,7 @@ Now we need to bring in the other three Swift files.
 
 1. In the Project Navigator sidebar, **right-click** on the **ClaudeUsage folder** (the yellow folder icon, not the blue project icon at the top)
 2. Choose **Add Files to "ClaudeUsage"…**
-3. Navigate to: `Documents → Claude Code → ai-makers-club → ClaudeUsage → ClaudeUsage`
+3. Navigate to the cloned repo, then into `ClaudeUsage/ClaudeUsage/`
 4. Hold **⌘** and click to select all three files:
    - `UsageService.swift`
    - `UsageViewModel.swift`

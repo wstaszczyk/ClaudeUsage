@@ -124,7 +124,7 @@ def fetch_usage() -> Optional[dict]:
         url = f"https://api.anthropic.com/api/organizations/{org_uuid}/usage"
         result = subprocess.run(
             ["curl", "-s", url,
-             "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+             "-H", "User-Agent: ClaudeUsage/0.1 (+https://github.com/wstaszczyk/ClaudeUsage)",
              "-H", "Accept: application/json",
              "-H", f"Cookie: sessionKey={session_key}; lastActiveOrg={org_uuid}"],
             capture_output=True, text=True, timeout=8

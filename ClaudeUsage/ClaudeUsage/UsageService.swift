@@ -364,7 +364,7 @@ struct UsageService {
         let url = URL(string: "https://api.anthropic.com/api/organizations/\(orgUUID)/usage")!
         var req = URLRequest(url: url, timeoutInterval: 10)
         req.setValue(
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+            "ClaudeUsage/0.1 (+https://github.com/wstaszczyk/ClaudeUsage)",
             forHTTPHeaderField: "User-Agent"
         )
         req.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -373,11 +373,10 @@ struct UsageService {
             forHTTPHeaderField: "Cookie"
         )
 
-        let (data, response) = try await URLSession.shared.data(for: req)
+        // One retry with 2s backoff for transient failures (5xx, network error).
+        // Auth failures (401/403) skip retry — they mean the cookie expired, fall through to JSONL.
+        let (data, http) = try await sendWithRetry(req)
 
-        guard let http = response as? HTTPURLResponse else {
-            throw UsageServiceError.apiError(0)
-        }
         guard http.statusCode == 200 else {
             throw UsageServiceError.apiError(http.statusCode)
         }
@@ -387,5 +386,28 @@ struct UsageService {
         } catch {
             throw UsageServiceError.decodingFailed
         }
+    }
+
+    private func sendWithRetry(_ req: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        for attempt in 0...1 {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: req)
+                guard let http = response as? HTTPURLResponse else {
+                    throw UsageServiceError.apiError(0)
+                }
+                if (500...599).contains(http.statusCode), attempt == 0 {
+                    try await Task.sleep(nanoseconds: 2_000_000_000)
+                    continue
+                }
+                return (data, http)
+            } catch {
+                if attempt == 0 {
+                    try await Task.sleep(nanoseconds: 2_000_000_000)
+                    continue
+                }
+                throw error
+            }
+        }
+        throw UsageServiceError.apiError(0)
     }
 }

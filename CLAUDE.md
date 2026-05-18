@@ -59,7 +59,6 @@ Full Xcode setup: `ClaudeUsage/ClaudeUsage/SETUP.md`.
 - Usage metric: **`cache_creation_input_tokens` only** (not output, not cache_read)
 - Dedup by `(requestId, message.id)` — turns appear 2–3× per streaming flush
 - Block = greedy 5h walk backwards; gap > 5h = boundary
-- Full derivation + verification history: `memory/project_block_limit_source.md`
 
 ---
 
@@ -96,9 +95,8 @@ Full Xcode setup: `ClaudeUsage/ClaudeUsage/SETUP.md`.
 
 ## Version control
 
-- Git repository initialised at project root.
-- GitHub remote: `git@github.com:wstaszczyk/ClaudeUsage.git`
-- Push: `git push` from the project root (remote and tracking branch already configured).
+- Git repository at project root; upstream is `github.com/wstaszczyk/ClaudeUsage` (forks will have their own).
+- Push: `git push` from the project root.
 
 ---
 
