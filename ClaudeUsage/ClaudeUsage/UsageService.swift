@@ -129,10 +129,17 @@ struct UsageService {
 
         // 4. Compute utilization and reset time for current block
         let usageTokens = block.reduce(0) { $0 + $1.cacheCreate }
-        let utilization = limit > 0
+        let rawUtilization = limit > 0
             ? min(Double(usageTokens) / Double(limit) * 100.0, 100.0)
             : 0.0
         let resetsAt = block[0].ts.addingTimeInterval(5 * 3600)
+
+        // If resetsAt is in the past the block has already expired.
+        // Show 0 % for the new empty block; estimate the next reset as 5 h from now
+        // (it will be corrected to firstNewTurn + 5 h once the user resumes).
+        let now = Date()
+        let utilization  = resetsAt <= now ? 0.0 : rawUtilization
+        let effectiveResetsAt = resetsAt <= now ? now.addingTimeInterval(5 * 3600) : resetsAt
 
         // 5. 7-day token sum (no weekly limit available from JSONL; shown as raw count)
         let sevenDayAgo = Date().addingTimeInterval(-7 * 24 * 3600)
@@ -146,7 +153,7 @@ struct UsageService {
         return UsageData(
             fiveHour: UsagePeriod(
                 utilization: utilization,
-                resetsAt: fmt.string(from: resetsAt)
+                resetsAt: fmt.string(from: effectiveResetsAt)
             ),
             sevenDay: nil,
             sevenDayOmelette: nil,
@@ -371,7 +378,7 @@ struct UsageService {
 
     private func callAPI(sessionKey: String, orgUUID: String) async throws -> UsageData {
         let url = URL(string: "https://api.anthropic.com/api/organizations/\(orgUUID)/usage")!
-        var req = URLRequest(url: url, timeoutInterval: 10)
+        var req = URLRequest(url: url, timeoutInterval: 4)
         req.setValue(
             "ClaudeUsage/0.1 (+https://github.com/wstaszczyk/ClaudeUsage)",
             forHTTPHeaderField: "User-Agent"
