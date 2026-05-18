@@ -280,6 +280,7 @@ private struct ActionRow: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .focusEffectDisabled()
         .onHover { hovered = $0 }
     }
 }
