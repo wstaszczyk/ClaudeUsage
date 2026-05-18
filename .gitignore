@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Xcode — personal editor state, not project config
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+DerivedData/
+*.xccheckout
+*.xcscmblueprint
+
+# Build artefacts
+build/
+*.o
+*.a
+*.d
+*.dSYM/
+
+# Claude Code local settings (permissions, launch config — machine-specific)
+.claude/
+
+# Python cache
+__pycache__/
+*.pyc
