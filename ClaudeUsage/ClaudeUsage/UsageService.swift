@@ -34,13 +34,22 @@ extension UsageData: Decodable {
     }
 }
 
-struct UsagePeriod: Decodable {
+struct UsagePeriod {
     let utilization: Double
-    let resetsAt: String
+    let resetsAt: String   // empty string when the API returns null (e.g. seven_day_omelette at 0%)
+}
 
+extension UsagePeriod: Decodable {
     enum CodingKeys: String, CodingKey {
         case utilization
         case resetsAt = "resets_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        utilization = try c.decode(Double.self, forKey: .utilization)
+        // resets_at can be null (Claude Design with 0% usage) — default to ""
+        resetsAt = try c.decodeIfPresent(String.self, forKey: .resetsAt) ?? ""
     }
 }
 
