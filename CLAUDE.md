@@ -68,6 +68,7 @@ Full Xcode setup: `ClaudeUsage/ClaudeUsage/SETUP.md`.
 - Menu bar: `🟢/🟡/🔴 27% · 3:50` — emoji dot (preserves color; SwiftUI shapes don't in template mode)
 - Dropdown: full-width progress bar · reset time · weekly all models · weekly Claude Design
 - Graceful fallback: shows `~27%` + "Estimated · open Claude Desktop to sync" note
+- Weekly JSONL fallback: shows raw 7-day `cache_creation_input_tokens` sum (e.g. `~2.4M tok`) under "All models" when API is unavailable — no weekly limit in `~/.claude.json` so raw count is shown instead of a %
 - Launch at Login toggle (SMAppService)
 - Auto-refresh every 30s
 
@@ -87,15 +88,21 @@ Full Xcode setup: `ClaudeUsage/ClaudeUsage/SETUP.md`.
 
 ## Unresolved issues
 
-- **Weekly data unavailable in fallback** — JSONL has no weekly window concept; `seven_day` is `nil` when API fails.
+- **Weekly % unavailable in fallback** — no weekly token limit in `~/.claude.json`; fallback shows raw 7-day token count instead of a percentage. Would need the weekly limit to show a bar.
 - **`kelp_forest_sonnet` key is undocumented** — could change in future Claude Code releases; fallback to 1 000 000 if missing.
 - **Session cookie expires daily** — opening Claude Desktop refreshes it; no programmatic refresh path found (OAuth client_id is compiled into Claude Desktop and not extractable).
-- **No git repository** — project has no version control yet.
+
+---
+
+## Version control
+
+- Git repository initialised at project root.
+- GitHub remote: `git@github.com:wstaszczyk/ClaudeUsage.git`
+- Push: `git push` from the project root (remote and tracking branch already configured).
 
 ---
 
 ## Next recommended steps
 
-1. `git init` in this directory — no history exists yet.
-2. Add weekly JSONL fallback — approximate 7-day rollup from JSONL to populate `seven_day` when API fails.
-3. Update `memory/project_block_limit_source.md` — formula listed there is wrong (says `cache_create + output`; correct is `cache_create` only).
+1. Add a `README.md` for the GitHub repo — currently the repo has no description visible on GitHub.
+2. Investigate whether the weekly token limit is exposed anywhere (API response fields, `~/.claude.json` future keys) to upgrade the fallback from raw count to a percentage bar.
