@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Claude Token Usage — UI States</title>
+<style>
+  :root {
+    --page-bg: #f5f5f7;
+    --page-fg: #1d1d1f;
+    --page-muted: #6e6e73;
+    --rule: #e5e5ea;
+
+    --menubar-bg: #1c1c1e;
+    --menubar-fg: #f5f5f7;
+
+    --card-bg: #1c1c1e;
+    --card-fg: #f5f5f7;
+    --card-muted: #888888;
+    --card-rule: rgba(255, 255, 255, 0.09);
+    --card-hover: rgba(255, 255, 255, 0.06);
+
+    --zone-clear: #3b82f6;
+    --zone-wind: #f59e0b;
+    --zone-finish: #ef4444;
+    --system-red: #ff453a;
+
+    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+    --sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font-family: var(--sys);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 56px 40px 96px;
+  }
+
+  /* ───── Page header ───── */
+  header.page-head {
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--page-muted);
+    margin: 0 0 10px;
+  }
+  h1.page-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0 0 8px;
+  }
+  p.page-sub {
+    margin: 0;
+    color: var(--page-muted);
+    font-size: 14px;
+    max-width: 60ch;
+  }
+
+  /* ───── Section heads ───── */
+  section.block { margin-top: 56px; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 10px;
+    margin-bottom: 24px;
+  }
+  .section-head h2 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .section-head .count {
+    font-size: 11px;
+    color: var(--page-muted);
+    font-family: var(--mono);
+  }
+
+  /* ───── Menu bar chips ───── */
+  .chips-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .chip {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .chip-label {
+    font-size: 11px;
+    color: var(--page-muted);
+    letter-spacing: 0.02em;
+  }
+  .chip-menubar {
+    background: var(--menubar-bg);
+    color: var(--menubar-fg);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: var(--sys);
+    font-size: 13px;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    min-height: 28px;
+    /* simulate macOS menu bar text */
+    font-feature-settings: "tnum" 1;
+  }
+  .chip-when {
+    font-size: 11px;
+    color: var(--page-muted);
+    font-family: var(--mono);
+  }
+
+  /* ───── Dropdown cards ───── */
+  .dropdowns-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+  }
+  .dropdown-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .dropdown-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .dropdown-caption .name {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dropdown-caption .zone {
+    font-size: 11px;
+    color: var(--page-muted);
+    font-family: var(--mono);
+  }
+
+  .dropdown {
+    background: var(--card-bg);
+    color: var(--card-fg);
+    border-radius: 10px;
+    padding: 8px 0;
+    box-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.08),
+      0 14px 40px rgba(0, 0, 0, 0.35),
+      0 4px 12px rgba(0, 0, 0, 0.25);
+    font-family: var(--sys);
+    font-size: 13px;
+    line-height: 1.35;
+    min-width: 320px;
+  }
+
+  .dd-row {
+    padding: 6px 14px;
+  }
+  .dd-row.dense { padding: 4px 14px; }
+
+  .dd-divider {
+    height: 1px;
+    background: var(--card-rule);
+    margin: 6px 0;
+  }
+
+  .dd-label {
+    font-size: 11px;
+    color: var(--card-muted);
+    letter-spacing: 0.01em;
+  }
+
+  .dd-bar {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0;
+    white-space: pre;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .dd-bar .pct {
+    color: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+  .dd-bar.clear   { color: var(--zone-clear); }
+  .dd-bar.wind    { color: var(--zone-wind); }
+  .dd-bar.finish  { color: var(--zone-finish); }
+  .dd-bar.dim     { opacity: 0.55; }
+  .dd-bar.unknown { color: #6b6b70; }
+
+  .dd-reset {
+    font-size: 13px;
+    color: var(--card-fg);
+  }
+  .dd-reset .sep {
+    color: var(--card-muted);
+    padding: 0 6px;
+  }
+  .dd-reset .remain {
+    color: var(--card-muted);
+  }
+
+  .dd-meta {
+    font-size: 13px;
+    color: var(--card-fg);
+  }
+  .dd-meta .sep {
+    color: var(--card-muted);
+    padding: 0 6px;
+  }
+  .dd-meta .turns {
+    color: var(--card-muted);
+  }
+
+  .dd-models {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 16px;
+    row-gap: 2px;
+    padding: 2px 14px 6px 26px;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .dd-models .name { color: var(--card-fg); }
+  .dd-models .val  { color: var(--card-fg); text-align: right; font-variant-numeric: tabular-nums; }
+
+  .dd-action {
+    padding: 6px 14px;
+    font-size: 13px;
+    color: var(--card-fg);
+    cursor: default;
+  }
+  .dd-action.destructive { color: var(--system-red); }
+
+  .dd-banner {
+    margin: 0 8px 4px;
+    padding: 8px 10px;
+    background: rgba(245, 158, 11, 0.10);
+    border: 1px solid rgba(245, 158, 11, 0.28);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #f5f5f7;
+  }
+  .dd-banner .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--zone-wind);
+    font-weight: 500;
+  }
+  .dd-banner .sub {
+    color: var(--card-muted);
+    margin-top: 2px;
+    font-size: 11px;
+  }
+
+  .dd-empty {
+    padding: 12px 14px 4px;
+    font-size: 13px;
+    color: var(--card-fg);
+  }
+  .dd-empty .sub {
+    color: var(--card-muted);
+    margin-top: 2px;
+    font-size: 12px;
+  }
+
+  /* Annotations under cards */
+  .dd-note {
+    font-size: 11px;
+    color: var(--page-muted);
+    font-family: var(--mono);
+    padding: 0 2px;
+  }
+
+  /* Footer */
+  footer.page-foot {
+    margin-top: 80px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px;
+    color: var(--page-muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 880px) {
+    .chips-grid { grid-template-columns: repeat(2, 1fr); }
+    .dropdowns-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+
+    <header class="page-head">
+      <p class="eyebrow">Visual reference · macOS menu bar app</p>
+      <h1 class="page-title">Claude Token Usage — UI states</h1>
+      <p class="page-sub">All menu bar title strings and dropdown states for the 5-hour usage tracker. Dark surfaces simulate macOS dark mode (<span style="font-family:var(--mono)">#1C1C1E</span>).</p>
+    </header>
+
+    <!-- ─────────── Menu bar chips ─────────── -->
+    <section class="block" aria-label="Menu bar states">
+      <div class="section-head">
+        <h2>Place 1 — Menu bar title strings</h2>
+        <span class="count">8 states</span>
+      </div>
+
+      <div class="chips-grid">
+
+        <div class="chip">
+          <div class="chip-label">Clear</div>
+          <div class="chip-menubar">42% · 17:59</div>
+          <div class="chip-when">0–74%, data fresh</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Wind-down</div>
+          <div class="chip-menubar">◑ 84% · 16:15</div>
+          <div class="chip-when">75–89%, data fresh</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Finish</div>
+          <div class="chip-menubar">⚠ 94% · 16:06</div>
+          <div class="chip-when">90–100%, data fresh</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Elapsed</div>
+          <div class="chip-menubar">↺ ready</div>
+          <div class="chip-when">block ended &gt;5h ago</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Stale</div>
+          <div class="chip-menubar">~ 42% · 17:59</div>
+          <div class="chip-when">no update &gt;5 min</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">No data</div>
+          <div class="chip-menubar">?</div>
+          <div class="chip-when">no sessions found</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Limit unknown</div>
+          <div class="chip-menubar">-- · 17:59</div>
+          <div class="chip-when">% not computable</div>
+        </div>
+
+        <div class="chip">
+          <div class="chip-label">Error</div>
+          <div class="chip-menubar">⚠</div>
+          <div class="chip-when">parse / read failure</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─────────── Dropdown cards ─────────── -->
+    <section class="block" aria-label="Dropdown states">
+      <div class="section-head">
+        <h2>Place 2 — Detail dropdown</h2>
+        <span class="count">6 states</span>
+      </div>
+
+      <div class="dropdowns-grid">
+
+        <!-- Default / Clear -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">Default (Clear zone, synced)</span>
+            <span class="zone">42% · blue</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-row"><div class="dd-label">5-hour limit</div></div>
+            <div class="dd-row">
+              <div class="dd-bar clear">
+                <span>████████░░░░░░░░░░░░</span><span class="pct">42%</span>
+              </div>
+            </div>
+            <div class="dd-row dense">
+              <div class="dd-reset">Resets at 17:59<span class="sep">·</span><span class="remain">3h 54m remaining</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row">
+              <div class="dd-meta">Block started 12:59<span class="sep">·</span><span class="turns">47 turns</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row"><div class="dd-label">By model:</div></div>
+            <div class="dd-models">
+              <div class="name">Opus 4.7</div><div class="val">98k</div>
+              <div class="name">Sonnet 4.6</div><div class="val">215k</div>
+              <div class="name">Haiku 4.5</div><div class="val">116k</div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-action">Refresh</div>
+            <div class="dd-action">Open Anthropic Console</div>
+            <div class="dd-divider"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+        <!-- Wind-down -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">Wind-down (75–89%)</span>
+            <span class="zone">84% · amber · ◑</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-row"><div class="dd-label">5-hour limit</div></div>
+            <div class="dd-row">
+              <div class="dd-bar wind">
+                <span>████████████████░░░░</span><span class="pct">84%</span>
+              </div>
+            </div>
+            <div class="dd-row dense">
+              <div class="dd-reset">Resets at 16:15<span class="sep">·</span><span class="remain">48m remaining</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row">
+              <div class="dd-meta">Block started 11:15<span class="sep">·</span><span class="turns">92 turns</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row"><div class="dd-label">By model:</div></div>
+            <div class="dd-models">
+              <div class="name">Opus 4.7</div><div class="val">214k</div>
+              <div class="name">Sonnet 4.6</div><div class="val">488k</div>
+              <div class="name">Haiku 4.5</div><div class="val">231k</div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-action">Refresh</div>
+            <div class="dd-action">Open Anthropic Console</div>
+            <div class="dd-divider"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+        <!-- Finish -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">Finish (90–100%)</span>
+            <span class="zone">94% · red · ⚠</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-row"><div class="dd-label">5-hour limit</div></div>
+            <div class="dd-row">
+              <div class="dd-bar finish">
+                <span>██████████████████░░</span><span class="pct">94%</span>
+              </div>
+            </div>
+            <div class="dd-row dense">
+              <div class="dd-reset">Resets at 16:06<span class="sep">·</span><span class="remain">18m remaining</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row">
+              <div class="dd-meta">Block started 11:06<span class="sep">·</span><span class="turns">118 turns</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row"><div class="dd-label">By model:</div></div>
+            <div class="dd-models">
+              <div class="name">Opus 4.7</div><div class="val">268k</div>
+              <div class="name">Sonnet 4.6</div><div class="val">541k</div>
+              <div class="name">Haiku 4.5</div><div class="val">279k</div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-action">Refresh</div>
+            <div class="dd-action">Open Anthropic Console</div>
+            <div class="dd-divider"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+        <!-- Stale -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">Stale (data &gt;5 min old)</span>
+            <span class="zone">bar dimmed</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-banner">
+              <div class="title">⚠ Data stale — Claude Code may not be running</div>
+              <div class="sub">Last update: 8m ago  ·  Start Claude Code to resume</div>
+            </div>
+            <div class="dd-row"><div class="dd-label">5-hour limit</div></div>
+            <div class="dd-row">
+              <div class="dd-bar clear dim">
+                <span>████████░░░░░░░░░░░░</span><span class="pct">42%</span>
+              </div>
+            </div>
+            <div class="dd-row dense">
+              <div class="dd-reset">Resets at 17:59<span class="sep">·</span><span class="remain">3h 54m remaining</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row">
+              <div class="dd-meta">Block started 12:59<span class="sep">·</span><span class="turns">47 turns</span></div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-row"><div class="dd-label">By model:</div></div>
+            <div class="dd-models">
+              <div class="name">Opus 4.7</div><div class="val">98k</div>
+              <div class="name">Sonnet 4.6</div><div class="val">215k</div>
+              <div class="name">Haiku 4.5</div><div class="val">116k</div>
+            </div>
+            <div class="dd-divider"></div>
+            <div class="dd-action">Refresh</div>
+            <div class="dd-action">Open Anthropic Console</div>
+            <div class="dd-divider"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+        <!-- Elapsed -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">Elapsed (block ended &gt;5h ago)</span>
+            <span class="zone">↺ ready</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-empty">
+              Last block ended at 12:59
+              <div class="sub">Start Claude Code to begin a new one.</div>
+            </div>
+            <div class="dd-divider" style="margin-top:10px"></div>
+            <div class="dd-action">Refresh</div>
+            <div class="dd-action">Open Anthropic Console</div>
+            <div class="dd-divider"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+        <!-- No data -->
+        <div class="dropdown-wrap">
+          <div class="dropdown-caption">
+            <span class="name">No data</span>
+            <span class="zone">?</span>
+          </div>
+          <div class="dropdown">
+            <div class="dd-empty">
+              No Claude Code sessions found.
+              <div class="sub">Run Claude Code to start tracking.</div>
+            </div>
+            <div class="dd-divider" style="margin-top:10px"></div>
+            <div class="dd-action destructive">Quit</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer class="page-foot">
+      <span>Claude Token Usage · V1 visual reference</span>
+      <span>Zones: Clear #3B82F6 · Wind-down #F59E0B · Finish #EF4444</span>
+    </footer>
+
+  </main>
+</body>
+</html>

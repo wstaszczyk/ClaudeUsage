@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 claude_usage.py)",
+      "Read(//Users/W/.claude/**)",
+      "Read(//Users/W/.claude/backups/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(cp \"/tmp/tokan-usage-handoff/tokan-usage/project/Token Usage States.html\" \\\\ *)",
+      "Bash(python3 claude-usage.10s.py)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(find /opt /usr/local -name \"brew\" -type f 2>/dev/null | head -5; echo \"---\"; ls ~/Applications/ 2>/dev/null | grep -i swift; ls /Applications/ 2>/dev/null | grep -i swift)",
+      "Bash(open /Applications/SwiftBar.app)",
+      "Bash(open \"swiftbar://reload\")",
+      "Bash(defaults read *)",
+      "Bash(defaults write *)",
+      "Bash(pkill -9 SwiftBar)",
+      "Bash(mkdir -p \"/Users/W/Documents/Claude Code/ai-makers-club/Token usage/.claude\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
