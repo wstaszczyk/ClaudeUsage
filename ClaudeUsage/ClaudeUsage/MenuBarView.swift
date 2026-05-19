@@ -235,7 +235,7 @@ private struct BlockBar: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule()
-                        .fill(Color.white.opacity(0.14))
+                        .fill(Color.primary.opacity(0.14))
                     Capsule()
                         .fill(color)
                         .frame(width: geo.size.width * CGFloat(clamped / 100))
