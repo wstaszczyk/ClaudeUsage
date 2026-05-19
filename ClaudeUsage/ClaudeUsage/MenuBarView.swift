@@ -3,12 +3,15 @@ import SwiftUI
 // MARK: - Design tokens  (pixel-matched to Token Usage States.html)
 
 private enum DS {
-    // Colours
-    static let bg        = Color(hex: "1C1C1E")   // --card-bg
-    static let fg        = Color(hex: "F5F5F7")   // --card-fg
-    static let muted     = Color(hex: "888888")   // --card-muted
-    static let divider   = Color.white.opacity(0.09) // --card-rule
-    static let hover     = Color.white.opacity(0.06) // --card-hover
+    // Colours — adaptive: resolved dynamically per system appearance
+    // bg/fg/muted/divider/hover use NSColor semantic values so the dropdown
+    // respects the user's light or dark mode without a hard-coded override.
+    static let bg        = Color(nsColor: .windowBackgroundColor)  // ~#1C1C1E dark, ~#ECECEC light
+    static let fg        = Color(nsColor: .labelColor)             // ~#F5F5F7 dark, ~#1D1D1F light
+    static let muted     = Color(nsColor: .secondaryLabelColor)    // ~#888 dark, ~#6E6E73 light
+    static let divider   = Color(nsColor: .separatorColor)         // thin rule, adaptive
+    static let hover     = Color(nsColor: .quaternaryLabelColor)   // very subtle tint, adaptive
+    // Zone / action colours: explicit hex — sufficient contrast on both backgrounds
     static let red       = Color(hex: "FF453A")   // --system-red (Quit)
     static let green     = Color(hex: "34C759")   // --zone-clear (Apple system green)
     static let amber     = Color(hex: "F59E0B")   // --zone-wind
@@ -40,7 +43,6 @@ struct MenuBarView: View {
         .padding(.vertical, DS.cardPad)
         .frame(width: DS.cardWidth)
         .background(DS.bg)
-        .preferredColorScheme(.dark)
     }
 
     // MARK: Loading

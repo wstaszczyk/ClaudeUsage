@@ -11,6 +11,7 @@ struct ClaudeUsageApp: App {
         } label: {
             Text(viewModel.statusDot + " " + viewModel.menuBarTitle)
                 .font(.system(size: 13, design: .monospaced))
+                .monospacedDigit()
         }
         .menuBarExtraStyle(.window)
     }

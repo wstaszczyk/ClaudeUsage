@@ -21,6 +21,9 @@ build/
 # Claude Code local settings (permissions, launch config — machine-specific)
 .claude/
 
+# Private drafts and notes — never publish (UX audits, design brief drafts, etc.)
+_private/
+
 # Python cache
 __pycache__/
 *.pyc
