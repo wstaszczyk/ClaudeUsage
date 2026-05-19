@@ -100,7 +100,28 @@ Full Xcode setup: `ClaudeUsage/ClaudeUsage/SETUP.md`.
 
 ---
 
+## Design considerations for future iterations
+
+### Menu bar display scope: Claude Code only vs. Claude Design vs. both
+
+**Current state:** App displays Claude Code 5-hour rolling limit + weekly all-models and Claude Design usage.
+
+**Decision point:** What should the primary menu bar indicator show?
+
+| Option | Pros | Cons | Minimalism score |
+|---|---|---|---|
+| **Claude Code only** (current) | Single signal, fast glance, matches original job story, aligns with 5-hour mental model | Doesn't surface Claude Design usage; design budget now doubled so arguably equally important | 10/10 |
+| **Claude Design only** | Recent 2× token limit increase makes it equally relevant; separate visual signal | Requires users to monitor two apps for complete picture; design tokens less frequently consumed | 9/10 |
+| **Both (e.g., `🟢 27% · 3:50` + `🔵 8% · Mon 2:00`)** | Complete visibility into both budgets in one glance | Menu bar gets crowded; requires explaining two separate reset times and zone colors; breaks minimalism principle; hard to glance quickly | 4/10 |
+
+**Context:** Claude Design tokens recently doubled (early 2026), making design work less quota-constrained. The original job story ("know how much 5-hour budget is burned without breaking flow") assumes Claude Code is the primary constraint. As design parity increases, this assumption may need revisiting.
+
+**Recommendation for next decision:** Clarify whether design is now a primary constraint or secondary concern. If primary, consider a dedicated design-focused variant of the app (separate repo, separate menu bar icon) rather than cramming both into one minimalist bar. If secondary, keep Claude Code as the single signal.
+
+---
+
 ## Next recommended steps
 
-1. Add a `README.md` for the GitHub repo — currently the repo has no description visible on GitHub.
+1. Decide on menu bar scope (see above).
 2. Investigate whether the weekly token limit is exposed anywhere (API response fields, `~/.claude.json` future keys) to upgrade the fallback from raw count to a percentage bar.
+3. Add unit tests for block boundary detection algorithm and JSONL turn deduplication logic.
