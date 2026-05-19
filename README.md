@@ -8,6 +8,12 @@ A macOS menu-bar app that shows your Claude Code 5-hour plan budget and weekly u
 🟢 27% · 3:50
 ```
 
+<img width="468" height="42" alt="Screenshot 2026-05-18 at 15 08 18 1" src="https://github.com/user-attachments/assets/52fdfde9-b06b-47ec-aef5-0869454314d8" />
+
+<img width="328" height="302" alt="Screenshot 2026-05-18 at 15 07 54 1" src="https://github.com/user-attachments/assets/2df34f5e-2795-49f5-8ba9-e75811b463de" />
+
+
+
 ---
 
 ## ⚠️ Status: experimental
